@@ -1,0 +1,12 @@
+ 	
+
+SCHTASKS -create 
+
+-WindowStyle Hidden -ExecutionPolicy Unrestricted -File "G:\Python\MySvG\usb_plug.ps1" >
+G:\Python\MySvG\usb_plug.ps1
+
+
+
+SyncBackSE.exe -source "C:\Source\Folder\Path" -dest "C:\Dest\Folder\Path" -m "ProfileToRun"
+
+G:\Python\MySvG\usb_plug.ps1
