@@ -7,8 +7,35 @@
 # TODO : trace via log
 # TODO : paramtrage via fichier INI
 # TEST : cas ou le lecteur est deja monté
+# TODO : Bitlocker https://serverfault.com/questions/1033703/how-to-add-credentials-to-bitlocker-script
+
+# https://www.developpez.net/forums/d1612364/general-developpement/programmation-systeme/windows/scripts-batch/modifier-fichier-configuration/
+# fonction de lecture d'un fichier ini
+function Get-IniContent ($filePath)
+{
+    switch -regex -file $filePath
+    {
+        "^\[(.+)\]$"
+        {
+            $section = $matches[1]
+        }
+        "(.+)=(.*)"
+        {
+            $name, $value = $matches[1..2]
+            New-Object -TypeName PSObject -Property @{Section = $section
+                                    Parametre = $name
+                                    Valeur = $value
+                                    } | Select Section, Parametre, Valeur
+        }
+    }
+}
+
+
 
 Register-WmiEvent -Class win32_VolumeChangeEvent -SourceIdentifier volumeChange
+#Lecture du fichier ini
+# -------------------------------------------------------------------------------
+$IniContent = Get-IniContent "USB2Letter.ini"
 write-host (get-date -format s) " Beginning script..."
 do{
     $newEvent = Wait-Event -SourceIdentifier volumeChange
@@ -26,23 +53,40 @@ do{
         $driveLetter = $newEvent.SourceEventArgs.NewEvent.DriveName
         write-host (get-date -format s) " Drive name = " $driveLetter
         start-sleep -seconds 1
+        # Recherche des information sur le device USB
         $driveLabel = ([wmi]"Win32_LogicalDisk='$driveLetter'").VolumeName
         write-host (get-date -format s) " Drive name = " $driveLetter
         write-host (get-date -format s) " Drive label = " $driveLabel
         # Execute process if drive matches specified condition(s)
         # if ($driveLetter -eq 'Z:' -and $driveLabel -eq 'Mirror')
-        if ($driveLabel -eq 'TOOLC128GO')
-        {
+
+        $Letter=$IniContent | Where { $_.Section -match "^$driveLabel$"} |  Where { $_.Parametre -match "^Letter$"}
+        $Action=$IniContent | Where { $_.Section -match "^$driveLabel$"} |  Where { $_.Parametre -match "^Action$"} 
+
+        
+        [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
+	
+        # $oReturn=[System.Windows.Forms.Messagebox]::Show($Letter.Valeur)
+        [System.Windows.Forms.Messagebox]::Show($Letter.Valeur)
+        # $oReturn=[System.Windows.Forms.Messagebox]::Show($Action.Valeur)
+        [System.Windows.Forms.Messagebox]::Show($Action.Valeur)
+
+        # if ($driveLabel -eq 'TOOLC128GO')
+        # {
         write-host (get-date -format s) " Starting task in 1 seconds..."
         start-sleep -seconds 1
         # $driveLetter 
         # Write-Host (-join($driveLetter, "\sync.bat")) 
         #start-sleep -seconds 2
-        if ($driveLetter -ne 'S:')
+        # if ($driveLetter -ne 'S:')
+        if ($driveLetter -ne $Letter.Valeur)
         {
             # Changement de lecteur 
-            Write-Host (get-date -format s) "Changement de lecteur"
-            Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE Label='TOOLC128GO'" | Set-CimInstance -Arguments @{DriveLetter="S:"}
+            Write-Host (get-date -format s) "Changement de lecteur "$driveLabel $Letter.Valeur
+            $MyQuery="SELECT * FROM Win32_Volume WHERE Label='$driveLabel'"
+            [System.Windows.Forms.Messagebox]::Show($MyQuery)
+            write-host (get-date -format s) $MyQuery
+            Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE Label='$driveLabel'" | Set-CimInstance -Arguments @{DriveLetter=$Letter.Valeur}
             # Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE Label='$driveLabel'" | Set-CimInstance -Arguments @{DriveLetter="S:"}
             #Get-Partition -DriveLetter $driveLetter | Set-Partition -NewDriveLetter "S:"
         }
@@ -51,7 +95,7 @@ do{
             write-host (get-date -format s) "Pas de  changement!"
         }
         # start-process (-join($driveLetter, "\sync.bat")) 
-        }
+        # }
     }
     Remove-Event -SourceIdentifier volumeChange
 } while (1-eq1) #Loop until next event
