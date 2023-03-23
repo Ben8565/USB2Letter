@@ -12,14 +12,14 @@ function Get-IniContent ($filePath)
             New-Object -TypeName PSObject -Property @{Section = $section
                                     Parametre = $name
                                     Valeur = $value
-                                    } | Select Section, Parametre, Valeur
+                                    } | Select-Object Section, Parametre, Valeur
         }
     }
 }
 $driveLabel = "EMTEC B111"
 $IniContent = Get-IniContent "USB2Letter.ini"
 #$Letter=$IniContent | Where { $_.Section -match "^$driveLabel$"} |  Where { $_.Parametre -match "^Letter$"} |sort-object section, parametre
-$Letter=$IniContent | Where { $_.Section -match "^$driveLabel$"} |  Where { $_.Parametre -match "^Letter$"}
+$Letter=$IniContent | Where-Object { $_.Section -match "^$driveLabel$"} |  Where-Object { $_.Parametre -match "^Letter$"}
 $Action=$IniContent | Where { $_.Section -match "^$driveLabel$"} |  Where { $_.Parametre -match "^Action$"} |sort-object section, parametre
 
 

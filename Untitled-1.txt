@@ -1,6 +1,17 @@
- 	
+ En mode cmd line : 
 
 SCHTASKS -create 
+
+schtasks /create /tn MaTache /tr "C:\Unfichierdescript.bat" /sc onstart /RU "domain\login" /RP "password" /RL HIGHEST
+schtasks /create /tn BCN\MaTache2 /tr "powershell.exe -WindowStyle Hidden -nologo -ExecutionPolicy Unrestricted -File C:\Local-Data\Projet\USB_plug_Letter\usb_plug.ps1 > C:\Local-Data\Projet\USB_plug_Letter\toto.log " /sc onstart  /RL HIGHEST /F
+
+schtasks /create /tn BCN\MaTache2 /tr "powershell.exe -WindowStyle Hidden -nologo -ExecutionPolicy Unrestricted -File C:\Local-Data\Projet\USB_plug_Letter\usb_plug.ps1 > C:\Local-Data\Projet\USB_plug_Letter\toto.log " /sc onstart  /RL HIGHEST /F /RU "SYSTEM"
+
+schtasks /create /tn BCN\WT  /tr "wt.exe  /sc onstart  /RL HIGHEST /F /RU "SYSTEM"
+
+
+-WindowStyle hidden  -nologo -executionpolicy remotesigned -Command "& 'C:\Program Files (x86)\Domoticz\scripts\powershell\Backup_Domoticz.ps1'"
+Mode powershell : 
 
 -WindowStyle Hidden -ExecutionPolicy Unrestricted -File "G:\Python\MySvG\usb_plug.ps1" >
 G:\Python\MySvG\usb_plug.ps1
